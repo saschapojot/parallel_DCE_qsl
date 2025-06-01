@@ -249,9 +249,26 @@ void evolution::init_Psi0()
     arma::cx_dmat Psi0_transposed = Psi0_arma.t();  // Creates a new matrix
 
     std::memcpy(this->Psi0.get(),Psi0_transposed.memptr(),N1*N2*sizeof(std::complex<double>));
+    // int n1=20;
+    // int n2=60;
+    // int flat_ind=flattened_ind(n1,n2);
+    // std::cout<<"flat_ind="<<flat_ind<<std::endl;
+    // std::cout<<Psi0[flat_ind]<<std::endl;
 
 
+}
 
+//initialize coefficients from d to c
+void evolution::init_d_2_c_coefs()
+{
+    for (int j=0;j<N1*N2;j++)
+    {
+        this->d_2_c_coefs[j]=std::complex<double>(1.0/static_cast<double>(N2),0);
+        if (j%2==1)
+        {
+            d_2_c_coefs[j]*=-1.0;
+        }//end if
+    }//end for j
 }
 void evolution::init()
 {
@@ -260,4 +277,25 @@ void evolution::init()
     this->construct_B(this->dt);
     this->construct_eS2_all(this->dt);
     this->init_Psi0();
+
+    this->init_d_2_c_coefs();
+
+
+}
+
+
+
+void evolution::step_U1(
+       int j )
+{
+
+    //Psi to d
+    fftw_execute(plan_row_fft_Psi_2_d_serial);
+
+    //d to c
+    for (int k=0;k<N1*N2;k++)
+    {
+        this->c[j]=this->d[j]*this->d_2_c_coefs[j];
+    }//end for j
+
 }

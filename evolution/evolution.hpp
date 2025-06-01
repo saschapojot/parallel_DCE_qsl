@@ -319,6 +319,9 @@ public:
         this->Psi=std::shared_ptr<std::complex<double>[]>(new std::complex<double>[N1*N2],std::default_delete<std::complex<double>>());
         this->Psi0=std::shared_ptr<std::complex<double>[]>(new std::complex<double>[N1*N2],std::default_delete<std::complex<double>>());
         this->c=std::shared_ptr<std::complex<double>[]>(new std::complex<double>[N1*N2],std::default_delete<std::complex<double>>());
+
+        this->d_2_c_coefs=std::shared_ptr<std::complex<double>[]>(new std::complex<double>[N1*N2],std::default_delete<std::complex<double>>());
+
         this->A=std::shared_ptr<std::complex<double>[]>(new std::complex<double>[N1*N2],std::default_delete<std::complex<double>>());
         this->B=std::shared_ptr<std::complex<double>[]>(new std::complex<double>[N1*N2],std::default_delete<std::complex<double>>());
         std::cout<<"after allocating pointer spaces"<<std::endl;
@@ -355,6 +358,9 @@ public:
 public:
     void init();
 
+    void step_U1(int j );
+    //initialize coefficients from d to c
+    void init_d_2_c_coefs();
     void init_Psi0();
     ///
     /// @param n1 index of x1
@@ -445,6 +451,7 @@ public:
     std::shared_ptr<std::complex<double>[]> Psi0;
    std::shared_ptr<std::complex<double>[]>  d;
     std::shared_ptr<std::complex<double>[]>  c;
+    std::shared_ptr<std::complex<double>[]> d_2_c_coefs;
     arma::dmat S2_mat_part1,S2_mat_part2,S2_mat_part3,S2_mat_part4;
 
     std::shared_ptr<std::complex<double>[]> A;
