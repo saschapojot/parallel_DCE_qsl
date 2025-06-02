@@ -324,6 +324,9 @@ public:
 
         this->A=std::shared_ptr<std::complex<double>[]>(new std::complex<double>[N1*N2],std::default_delete<std::complex<double>>());
         this->B=std::shared_ptr<std::complex<double>[]>(new std::complex<double>[N1*N2],std::default_delete<std::complex<double>>());
+        this->exp_A_all=std::shared_ptr<std::complex<double>[]>(new std::complex<double>[N1*N2],std::default_delete<std::complex<double>>());
+        this->exp_B_all=std::shared_ptr<std::complex<double>[]>(new std::complex<double>[N1*N2],std::default_delete<std::complex<double>>());
+
         std::cout<<"after allocating pointer spaces"<<std::endl;
 
         //fftw plans
@@ -358,7 +361,12 @@ public:
 public:
     void init();
 
+    void run_and_save_H1R_only();
     void step_U1(int j );
+
+    void interpolation_Psi_tilde(int j1);
+    void init_c_rows_all();
+    void init_Psi_tilde_rows_all();
     //initialize coefficients from d to c
     void init_d_2_c_coefs();
     void init_Psi0();
@@ -386,6 +394,11 @@ public:
     /// @param n2 col index
     /// @return flattened index
     int flattened_ind(int n1,int n2);
+
+
+    void save_complex_array_to_pickle(std::complex<double> ptr[],
+                                    int size,
+                                    const std::string& filename);
 public:
     int j1H;
     int j2H;
@@ -452,7 +465,12 @@ public:
    std::shared_ptr<std::complex<double>[]>  d;
     std::shared_ptr<std::complex<double>[]>  c;
     std::shared_ptr<std::complex<double>[]> d_2_c_coefs;
+    std::shared_ptr<std::complex<double>[]> exp_B_all;
+    std::shared_ptr<std::complex<double>[]> exp_A_all;
     arma::dmat S2_mat_part1,S2_mat_part2,S2_mat_part3,S2_mat_part4;
+
+    std::shared_ptr<arma::cx_drowvec[]>Psi_tilde_rows_all;//store Psi_tilde[j1,:] using armadillo
+    std::shared_ptr<arma::cx_drowvec[]> c_rows_all;//store c[j1,:] using armadillo
 
     std::shared_ptr<std::complex<double>[]> A;
    std::shared_ptr<std::complex<double>[]> B;

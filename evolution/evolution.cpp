@@ -151,6 +151,7 @@ void evolution::construct_A(const double& tau)
             double x2n2 = this->x2ValsAll[n2];
             int flat_ind = flattened_ind(n1, n2);
             this->A[flat_ind] = gen_A_1_elem(x1n1, x2n2, tau);
+            this->exp_A_all[flat_ind]=std::exp(A[flat_ind]);
         } //end n2
     } //end n1
 }
@@ -166,6 +167,7 @@ void evolution::construct_B(const double & tau)
             double x2n2 = this->x2ValsAll[n2];
             int flat_ind = flattened_ind(n1, n2);
             this->B[flat_ind]=gen_B_1_elem(x1n1, x2n2, tau);
+            this->exp_B_all[flat_ind]=std::exp(-B[flat_ind]);
         }//end n2
     }//end n1
 }
@@ -194,11 +196,31 @@ void evolution::construct_eS2_all(const double & tau)
         arma::cx_drowvec one_row=S2_mat.row(j1);
 
         arma::cx_dmat k2S2_j1=arma::kron(k2Vals_arma_col_vec,one_row);
+        //std::cout<<k2S2_j1.n_rows<<", "<<k2S2_j1.n_cols<<std::endl;
         eS2_all[j1]=arma::exp(1i*k2S2_j1);
 
     }//end for j1
 
 
+}
+
+void evolution::init_c_rows_all()
+{
+    this->c_rows_all =std::shared_ptr<arma::cx_drowvec[]>(new arma::cx_drowvec[N1]);
+    for (int j1=0;j1<N1;j1++)
+    {
+        c_rows_all[j1]=arma::cx_drowvec(N2,arma::fill::zeros);
+    }//end j1
+    // std::cout<<"finished init c_rows_all"<<std::endl;
+}
+
+void evolution::init_Psi_tilde_rows_all()
+{
+this->Psi_tilde_rows_all=std::shared_ptr<arma::cx_drowvec[]>(new arma::cx_drowvec[N1]);
+    for (int j1=0;j1<N1;j1++)
+    {
+        Psi_tilde_rows_all[j1]=arma::cx_drowvec(N2,arma::fill::zeros);
+    }//end j1
 }
 double evolution::f1(int n1)
 {
@@ -279,11 +301,22 @@ void evolution::init()
     this->init_Psi0();
 
     this->init_d_2_c_coefs();
+    this->init_c_rows_all();
+    this->init_Psi_tilde_rows_all();
 
 
 }
 
-
+///
+/// @param j1 row index
+void evolution::interpolation_Psi_tilde(int j1)
+{
+    //copy c in ptr to c_rows_all[j1]
+    int flat_ind=flattened_ind(j1,0);
+    std::memcpy(c_rows_all[j1].memptr(),c.get()+flat_ind,N2*sizeof(std::complex<double>));
+    Psi_tilde_rows_all[j1]=c_rows_all[j1]*eS2_all[j1];
+    std::memcpy(Psi_tilde.get()+flat_ind,Psi_tilde_rows_all[j1].memptr(),N2*sizeof(std::complex<double>));
+}
 
 void evolution::step_U1(
        int j )
@@ -298,4 +331,99 @@ void evolution::step_U1(
         this->c[j]=this->d[j]*this->d_2_c_coefs[j];
     }//end for j
 
+    //serial interpolation
+    for (int j1=0;j1<N1;j1++)
+    {
+        interpolation_Psi_tilde(j1);
+    }//end for j1
+//next Psi
+    for (int k=0;k<N1*N2;k++)
+    {
+        Psi[k]=Psi_tilde[k]*exp_B_all[k]*exp_A_all[k];
+    }//end k
+}
+
+
+
+void evolution::run_and_save_H1R_only()
+{
+    //copy Psi0 to Psi
+    std::memcpy(Psi.get(),Psi0.get(),N1*N2*sizeof(std::complex<double>));
+    std::string outPath="./outData/group"+std::to_string(groupNum)+"/row"
+   +std::to_string(rowNum)+"/wavefunction/";
+    std::string outFileName;
+    if (!fs::is_directory(outPath) || !fs::exists(outPath))
+    {
+        fs::create_directories(outPath);
+    }//end creating outPath
+    std::cout<<"created out dir"<<std::endl;
+    for (int j=0;j<10;j++)
+    {
+        this->step_U1(j);
+        if (j%1==0)
+        {
+            std::cout<<"saving at step "<<j<<std::endl;
+            outFileName=outPath+"/at_time_step_"+std::to_string(j+1)+".pkl";
+            this->save_complex_array_to_pickle(Psi.get(),N1*N2,outFileName);
+        }//end if
+    }//end for j
+
+}
+
+
+void evolution::save_complex_array_to_pickle(std::complex<double> ptr[],
+                                    int size,
+                                    const std::string& filename)
+{
+    // Initialize Python interpreter if it is not already initialized.
+    if (!Py_IsInitialized())
+    {
+        Py_Initialize();
+        if (!Py_IsInitialized())
+        {
+            throw std::runtime_error("Failed to initialize Python interpreter");
+        }
+        np::initialize();  // Initialize NumPy
+    }
+
+    try
+    {
+        // Import the pickle module and retrieve the dumps function.
+        bp::object pickle = bp::import("pickle");
+        bp::object pickle_dumps = pickle.attr("dumps");
+
+        // Convert the C++ complex array to a NumPy array.
+        np::ndarray numpy_array = np::from_data(
+            ptr,                                           // Raw pointer to data
+            np::dtype::get_builtin<std::complex<double>>(),// NumPy dtype for std::complex<double>
+            bp::make_tuple(size),                          // Shape: 1D array with "size" elements
+            bp::make_tuple(sizeof(std::complex<double>)),  // Stride: size of one element
+            bp::object()                                   // No base object provided
+        );
+
+        // Serialize the NumPy array using pickle.dumps.
+        bp::object serialized_obj = pickle_dumps(numpy_array);
+        std::string serialized_str = bp::extract<std::string>(serialized_obj);
+
+        // Write the serialized data to a file.
+        std::ofstream file(filename, std::ios::binary);
+        if (!file)
+        {
+            throw std::runtime_error("Failed to open file for writing: " + filename);
+        }
+        file.write(serialized_str.data(), serialized_str.size());
+        file.close();
+
+        // Optional debug output.
+        // std::cout << "Complex array successfully serialized and saved to " << filename << std::endl;
+    }
+    catch (const bp::error_already_set&)
+    {
+        PyErr_Print();
+        std::cerr << "Boost.Python error occurred while saving complex array." << std::endl;
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Exception: " << e.what() << std::endl;
+    }
 }

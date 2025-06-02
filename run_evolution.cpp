@@ -9,4 +9,5 @@ int main(int argc, char *argv[])
     }
     auto evo_obj=evolution(std::string(argv[1]));
     evo_obj.init();
+    evo_obj.run_and_save_H1R_only();
 }
