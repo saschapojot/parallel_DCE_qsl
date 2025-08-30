@@ -38,8 +38,8 @@ set_source_files_properties(
 
 message(STATUS "Using C++ compiler: ${CMAKE_CXX_COMPILER}")
 
-set(Python3_INCLUDE_DIRS "/home/adada/anaconda3/include/python3.9")
-set(Python3_LIBRARIES "/home/adada/anaconda3/lib/libpython3.9.so")
+set(Python3_INCLUDE_DIRS "/home/adada/anaconda3/include/python3.13")
+set(Python3_LIBRARIES "/home/adada/anaconda3/lib/libpython3.13.so")
 include_directories(${Python3_INCLUDE_DIRS})
 
 set(Boost_NO_SYSTEM_PATHS YES)
