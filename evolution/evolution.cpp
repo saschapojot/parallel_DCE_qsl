@@ -57,3 +57,31 @@ void evolution::save_complex_array_to_pickle(std::complex<double> ptr[],
         std::cerr << "Exception: " << e.what() << std::endl;
     }
 }
+
+
+///
+/// @param x1
+/// @return rho(x1)
+double evolution::rho(const double &x1)
+{
+    return omegac*std::pow(x1,2.0)-0.5;
+}
+
+///
+/// @param x1
+/// @param x2
+/// @param tau time step
+/// @return
+double evolution::s2(const double&x1, const double & x2, const double &tau)
+{
+    double rho_val=rho(x1);
+    double exp_val=std::exp(lmd*std::sin(theta)*tau);
+
+    double val1=-g0/D*omegap*std::sqrt(2.0/omegam)*rho_val;
+    double val2=x2*exp_val;
+
+    double val3=-g0/D*std::sqrt(2.0/omegam)*lmd*std::sin(theta)*rho_val*std::sin(omegap*tau)*exp_val;
+
+    double val4=g0/D*std::sqrt(2.0/omegam)*omegap*rho_val*std::cos(omegap*tau)*exp_val;
+    return val1+val2+val3+val4;
+}
