@@ -1,6 +1,10 @@
 from sympy import *
 from sympy import expand_complex
 from sympy.simplify.fu import TR11,TR5
+import pandas as pd
+import numpy as np
+
+
 #symbolic computation for step by step notes
 
 g0,lmd,theta=symbols("g0,lambda,theta",cls=Symbol,real=True)
@@ -144,13 +148,25 @@ H10R=-half*omegac-half*Deltam-half*g0*sqrt(2*omegam)*cos(omegap*t)*x2+half*omega
 
 beta=(-I*half*omegac*rho+I*quarter*omegac+I*half*Deltam+half*lmd*sin(theta))*t
 
-lhs=diff(beta+G,t)*I
 
 
-rhs=H10R+I*(-g0*sqrt(2/omegam)*sin(omegap*t)*rho+lmd*sin(theta)*x2)*diff(beta+G,x2)
 
-tmp=lhs-rhs
+grpNum=0
+rowNum=0
 
-rst=TR11(expand_complex(tmp))
+inCsvFileName=f"./inParams/inParams{grpNum}.csv"
 
-pprint(simplify(expand(rst)))
+df=pd.read_csv(inCsvFileName)
+row=df.iloc[rowNum,:]
+
+j1H=row["j1H"]
+
+j2H=row["j2H"]
+g0=row["g0"]
+omegam=row["omegam"]
+omegap=row["omegap"]
+omegac=row["omegac"]
+
+er=row["er"]
+thetaCoef=row["thetaCoef"]
+theta=thetaCoef*np.pi
