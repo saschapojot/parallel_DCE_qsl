@@ -57,7 +57,15 @@ void evolution::save_complex_array_to_pickle(std::complex<double> ptr[],
         std::cerr << "Exception: " << e.what() << std::endl;
     }
 }
+///
+/// @param n1 row index
+/// @param n2 col index
+/// @return flattened index
+int evolution::flattened_ind(int n1, int n2)
+{
 
+    return  n1*N2+n2;
+}
 
 ///
 /// @param x1
