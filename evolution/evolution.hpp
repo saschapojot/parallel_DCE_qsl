@@ -214,11 +214,11 @@ public:
         }
         for (int n1 = 0; n1 < static_cast<int>(N1 / 2); n1++)
         {
-            k1ValsAll_fft.push_back(2 * PI * static_cast<double>(n1) / (2.0 * L1));
+            k1ValsAll_fft.push_back(2.0 * PI * static_cast<double>(n1) / (2.0 * L1));
         }
         for (int n1 = static_cast<int>(N1 / 2); n1 < N1; n1++)
         {
-            k1ValsAll_fft.push_back(2 * PI * static_cast<double>(n1 - N1) / (2.0 * L1));
+            k1ValsAll_fft.push_back(2.0 * PI * static_cast<double>(n1 - N1) / (2.0 * L1));
         }
 
 
@@ -228,11 +228,15 @@ public:
         }
         for (int n2 = 0; n2 < static_cast<int>(N2 / 2); n2++)
         {
-            k2ValsAll_fft.push_back(2 * PI * static_cast<double>(n2) / (2.0 * L2));
+            k2ValsAll_fft.push_back(2.0 * PI * static_cast<double>(n2) / (2.0 * L2));
         }
         for (int n2 = static_cast<int>(N2 / 2); n2 < N2; n2++)
         {
-            k2ValsAll_fft.push_back(2 * PI * static_cast<double>(n2 - N2) / (2.0 * L2));
+            k2ValsAll_fft.push_back(2.0 * PI * static_cast<double>(n2 - N2) / (2.0 * L2));
+        }
+        for (int n2=0;n2<N2;n2++)
+        {
+            k2ValsAll_interpolation.push_back(2*PI*static_cast<double>(n2)/(2.0*L2));
         }
 
         for (const auto& val : k2ValsAll_fft)
@@ -248,6 +252,18 @@ public:
         std::cout << "tTot=" << tTot << std::endl;
         std::cout << "Q=" << Q << std::endl;
         std::cout << "dt=" << dt << std::endl;
+
+        // double x1_tmp=1;
+        // double x2_tmp=2;
+        // double tau_tmp=0.1;
+        // std::cout<<"s2="<<this->s2(x1_tmp,x2_tmp,tau_tmp)<<std::endl;
+
+        arma::dmat A{{1,2,3},{4,5,6},{7,8,9}};
+        A.print("A:");
+        arma::drowvec x{3,4,5};
+        auto B=A.each_row()%x;
+        B.print("B:");
+
 
         //allocate spaces
         this->psiCurr = std::shared_ptr<std::complex<double>[]>(
@@ -270,6 +286,18 @@ public:
     }
 
 public:
+    ///
+    /// @param tau time step
+    /// this function computes all expSj matrices
+    void compute_all_expSj(const double &tau);
+
+    /// 
+    /// @param I_k2_mat matrix, each column is k2 vectors for interpolation, multiplied by i
+    /// @param n1 index of x1
+    /// @param tau time step
+    /// @return one expSj matrix
+    arma::cx_dmat compute_one_expS_j(const arma::cx_dmat & I_k2_mat, const int& n1,const double &tau);
+
     ///
     /// @param x1
     /// @param x2
@@ -343,7 +371,7 @@ public:
     std::shared_ptr<std::complex<double>[]> psiTmpCache; //intermediate value of psi
     std::shared_ptr<std::complex<double>[]> psiNext; //next value of psi
 
-    std::shared_ptr<arma::cx_dmat[]> expS;
+    arma::field<arma::cx_mat> expS;// all expSj
 
     arma::cx_dmat expA;
 };

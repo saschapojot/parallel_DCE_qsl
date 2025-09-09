@@ -93,3 +93,57 @@ double evolution::s2(const double&x1, const double & x2, const double &tau)
     double val4=g0/D*std::sqrt(2.0/omegam)*omegap*rho_val*std::cos(omegap*tau)*exp_val;
     return val1+val2+val3+val4;
 }
+
+
+///
+/// @param tau time step
+/// this function computes all expSj matrices
+void evolution::compute_all_expSj(const double &tau)
+{
+    expS.set_size(N1);// Create field to hold N1 matrices
+    for (int n1=0;n1<N1;n1++)
+    {
+        expS(n1).set_size(N2,N2);
+        expS(n1).zeros();
+    }//end for n1
+
+    arma::cx_dmat I_k2_mat(N2,N2,arma::fill::zeros);
+    arma::cx_dvec arma_vector = arma::conv_to<arma::cx_dvec>::from(k2ValsAll_interpolation);
+    I_k2_mat.each_col()=arma_vector*1i;
+
+    for (int n1=0;n1<N1;n1++)
+    {
+        expS(n1)=compute_one_expS_j(I_k2_mat,n1,tau);
+    }
+
+
+}
+
+
+///
+/// @param I_k2_mat matrix, each column is k2 vectors for interpolation, multiplied by i
+/// @param n1 index of x1
+/// @param tau time step
+/// @return one expSj matrix
+arma::cx_dmat  evolution::compute_one_expS_j(const arma::cx_dmat & I_k2_mat, const int& n1,const double &tau)
+{
+    arma::cx_drowvec S2n1(N2);
+
+    double x1n1=this->x1ValsAll[n1];
+
+    for (int n2=0;n2<N2;n2++)
+    {
+        double x2n2=this->x2ValsAll[n2];
+        double S2n1n2=this->s2(x1n1,x2n2,tau);
+        S2n1(n2)=std::complex<double>( S2n1n2,0);
+    }//end for n2
+
+    arma::cx_dmat one_expSj(N2,N2,arma::fill::zeros);
+
+    one_expSj=I_k2_mat;
+    one_expSj.each_row()%=S2n1;
+    one_expSj=arma::exp(one_expSj);
+
+    return one_expSj;
+
+}
