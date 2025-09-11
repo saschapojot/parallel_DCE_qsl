@@ -147,3 +147,127 @@ arma::cx_dmat  evolution::compute_one_expS_j(const arma::cx_dmat & I_k2_mat, con
     return one_expSj;
 
 }
+
+///
+/// @param x1
+/// @param x2
+/// @return auxiliary function F0, see notes
+ std::complex<double> evolution::F0(const double &x1, const double& x2)
+{
+ std::complex<double> part1=1i*omegam*mu/(4*lmd*std::sin(theta))*std::pow(x2,2.0);
+
+    double rho_val=rho(x1);
+
+    std::complex<double> part2=1i*std::pow(g0/D*rho_val,2.0)*
+        ((2.0*omegap-D/(2.0*omegap)-mu/2.0)*lmd*std::sin(theta)+mu*D/(4.0*lmd*std::sin(theta)));
+    return part1+part2;
+
+}
+
+///
+/// @param x1
+/// @return auxiliary function F1, see notes
+std::complex<double> evolution::F1(const double &x1)
+{
+    double rho_val=rho(x1);
+std::complex<double> part1=1i*std::pow(g0,2.0)/D*(omegap-mu/2.0)*std::pow(rho_val,2.0);
+    return part1;
+}
+
+///
+/// @param x1
+/// @return auxiliary function F2, see notes
+std::complex<double> evolution::F2(const double &x1)
+{
+    double rho_val=rho(x1);
+    double lmd_sq=std::pow(lmd,2.0);
+    double sin_sq=std::pow(std::sin(theta),2.0);
+
+    std::complex<double> part1=1i*std::pow(g0/D*rho_val,2.0)*
+        (2.0*lmd_sq*D*sin_sq+4.0*mu*lmd_sq*omegap*sin_sq
+            +mu*std::pow(omegap,3.0)
+            -3.0*mu*lmd_sq*omegap*sin_sq)/(4.0*lmd*omegap*std::sin(theta));
+
+    return  part1;
+}
+
+///
+/// @param x1
+/// @param x2
+/// @return auxiliary function F3, see notes
+std::complex<double> evolution::F3(const double &x1,const double& x2)
+{
+    double rho_val=rho(x1);
+    std::complex<double> part1=1i*g0/D*(0.5*mu-omegap)*std::sqrt(2.0*omegam)*rho_val*x2;
+    return part1;
+}
+
+///
+/// @param x1
+/// @param x2
+/// @return auxiliary function F4, see notes
+std::complex<double> evolution::F4(const double &x1,const double& x2)
+{
+    double rho_val=rho(x1);
+    double lmd_sin_theta=lmd*std::sin(theta);
+
+    std::complex<double> part1=1i*g0/D*std::sqrt(2.0*omegam)
+                               *(mu*omegap+2.0*std::pow(lmd_sin_theta,2.0))/(2.0*lmd_sin_theta)
+                                *rho_val*x2;
+    return  part1;
+}
+
+///
+/// @param x1
+/// @param x2
+/// @return auxiliary function F5, see notes
+std::complex<double> evolution::F5(const double &x1,const double& x2)
+{
+    double rho_val=rho(x1);
+    std::complex<double>  part1=-1i*mu/(4.0*lmd*std::sin(theta)*D)
+                                *(D*omegam*std::pow(x2,2.0)+std::pow(g0*rho_val,2.0));
+
+    return part1;
+}
+
+
+///
+/// @param x1
+/// @param x2
+/// @return auxiliary function F6, see notes
+std::complex<double> evolution::F6(const double &x1,const double& x2)
+{
+    double rho_val=rho(x1);
+    std::complex<double>  part1= 1i*mu*g0/D*std::sqrt(omegam/2.0)*rho_val*x2;
+    return part1;
+}
+
+
+///
+/// @param x1
+/// @param x2
+/// @return auxiliary function F7, see notes
+std::complex<double> evolution::F7(const double &x1,const double& x2)
+{
+    double rho_val=rho(x1);
+    std::complex<double>  part1=-1i*mu*g0/(lmd*std::sin(theta)*D)
+                                *std::sqrt(omegam/2.0)*omegap*rho_val*x2;
+    return part1;
+}
+
+
+///
+/// @param x1
+/// @return auxiliary function F8, see notes
+std::complex<double> evolution::F8(const double &x1)
+{
+    double rho_val=rho(x1);
+    double lmd_sin_theta=lmd*std::sin(theta);
+    std::complex<double> part1=1i*mu*std::pow(g0,2.0)/(4*std::pow(D,2.0)*lmd_sin_theta)
+                                *(std::pow(lmd_sin_theta,2.0)-std::pow(omegap,2.0))
+                                *std::pow(rho_val,2.0);
+
+    return  part1;
+
+
+}

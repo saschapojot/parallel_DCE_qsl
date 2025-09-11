@@ -253,16 +253,12 @@ public:
         std::cout << "Q=" << Q << std::endl;
         std::cout << "dt=" << dt << std::endl;
 
-        // double x1_tmp=1;
-        // double x2_tmp=2;
-        // double tau_tmp=0.1;
-        // std::cout<<"s2="<<this->s2(x1_tmp,x2_tmp,tau_tmp)<<std::endl;
+        double x1_tmp=1;
+        double x2_tmp=2;
+        double tau_tmp=0.1;
+        std::cout<<"F8="<<this->F8(x1_tmp)<<std::endl;
 
-        arma::dmat A{{1,2,3},{4,5,6},{7,8,9}};
-        A.print("A:");
-        arma::drowvec x{3,4,5};
-        auto B=A.each_row()%x;
-        B.print("B:");
+
 
 
         //allocate spaces
@@ -286,6 +282,53 @@ public:
     }
 
 public:
+    ///
+    /// @param x1
+    /// @return auxiliary function F8, see notes
+    std::complex<double> F8(const double &x1);
+    ///
+    /// @param x1
+    /// @param x2
+    /// @return auxiliary function F7, see notes
+    std::complex<double> F7(const double &x1,const double& x2);
+    ///
+    /// @param x1
+    /// @param x2
+    /// @return auxiliary function F6, see notes
+    std::complex<double> F6(const double &x1,const double& x2);
+
+    ///
+    /// @param x1
+    /// @param x2
+    /// @return auxiliary function F5, see notes
+    std::complex<double> F5(const double &x1,const double& x2);
+
+    ///
+    /// @param x1
+    /// @param x2
+    /// @return auxiliary function F4, see notes
+    std::complex<double> F4(const double &x1,const double& x2);
+
+    ///
+    /// @param x1
+    /// @param x2
+    /// @return auxiliary function F3, see notes
+    std::complex<double> F3(const double &x1,const double& x2);
+
+    ///
+    /// @param x1
+    /// @return auxiliary function F2, see notes
+    std::complex<double> F2(const double &x1);
+    ///
+    /// @param x1
+    /// @return auxiliary function F1, see notes
+    std::complex<double> F1(const double &x1);
+    ///
+    /// @param x1
+    /// @param x2
+    /// @return auxiliary function F0, see notes
+     std::complex<double> F0(const double &x1, const double& x2);
+
     ///
     /// @param tau time step
     /// this function computes all expSj matrices
