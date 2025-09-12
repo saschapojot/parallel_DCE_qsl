@@ -256,7 +256,8 @@ public:
         double x1_tmp=1;
         double x2_tmp=2;
         double tau_tmp=0.1;
-        std::cout<<"F8="<<this->F8(x1_tmp)<<std::endl;
+        // std::cout<<"F2="<<F2(x1_tmp)<<std::endl;
+        std::cout<<"beta="<<this->beta(x1_tmp,tau_tmp)<<std::endl;
 
 
 
@@ -268,6 +269,9 @@ public:
     new std::complex<double>[totalSize]);
         this->psiNext = std::shared_ptr<std::complex<double>[]>(
     new std::complex<double>[totalSize]);
+        this->Gamma_matrix=std::shared_ptr<std::complex<double>[]>(
+    new std::complex<double>[totalSize]);
+
 
         std::cout << "after allocating pointer spaces" << std::endl;
     } //end constructor
@@ -282,6 +286,39 @@ public:
     }
 
 public:
+    void init_and_run();
+
+    ///
+    /// @param x1
+    /// @param t
+    /// @return auxiliary function beta, see notes
+    std::complex<double> beta(const double &x1,const double& t);
+
+
+    ///
+    /// @param x1
+    /// @param x2
+    /// @param t
+    /// @return auxiliary function G, see notes
+    std::complex<double> G(const double &x1,const double& x2,const double& t);
+
+    ///
+    /// @param x1
+    /// @return auxiliary function F12, see notes
+    std::complex<double>  F12(const double &x1);
+    ///
+    /// @param x1
+    /// @return auxiliary function F11, see notes
+    std::complex<double> F11(const double &x1);
+    ///
+    /// @param x1
+    /// @param x2
+    /// @return auxiliary function F10, see notes
+    std::complex<double> F10(const double &x1,const double& x2);
+    ///
+    /// @param x1
+    /// @return auxiliary function F9, see notes
+    std::complex<double> F9(const double &x1);
     ///
     /// @param x1
     /// @return auxiliary function F8, see notes
@@ -413,6 +450,8 @@ public:
     std::shared_ptr<std::complex<double>[]> psiCurr; //current value of psi
     std::shared_ptr<std::complex<double>[]> psiTmpCache; //intermediate value of psi
     std::shared_ptr<std::complex<double>[]> psiNext; //next value of psi
+
+    std::shared_ptr<std::complex<double>[]> Gamma_matrix;
 
     arma::field<arma::cx_mat> expS;// all expSj
 

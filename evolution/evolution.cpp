@@ -271,3 +271,146 @@ std::complex<double> evolution::F8(const double &x1)
 
 
 }
+
+///
+/// @param x1
+/// @return auxiliary function F9, see notes
+std::complex<double> evolution::F9(const double &x1)
+{
+    double rho_val=rho(x1);
+    std::complex<double> part1=1i*mu/2.0*std::pow(g0*rho_val/D,2.0)*omegap;
+    return part1;
+}
+
+///
+/// @param x1
+/// @param x2
+/// @return auxiliary function F10, see notes
+std::complex<double> evolution::F10(const double &x1,const double& x2)
+{
+    double rho_val=rho(x1);
+    std::complex<double> part1=-1i*g0/D*std::sqrt(2.0*omegam)
+                              *lmd*std::sin(theta)*rho_val*x2;
+    return part1;
+}
+
+
+///
+/// @param x1
+/// @return auxiliary function F11, see notes
+std::complex<double> evolution::F11(const double &x1)
+{
+    double rho_val=rho(x1);
+    std::complex<double> part1=1i*2.0*std::pow(g0*lmd*std::sin(theta)/D*rho_val,2.0);
+    return part1;
+}
+
+///
+/// @param x1
+/// @return auxiliary function F12, see notes
+std::complex<double>  evolution::F12(const double &x1)
+{
+    double rho_val=rho(x1);
+    std::complex<double> part1=-1i*2.0*lmd*omegap
+                                *std::sin(theta)*std::pow(g0/D*rho_val,2.0);
+
+    return part1;
+}
+
+///
+/// @param x1
+/// @param x2
+/// @param t
+/// @return auxiliary function G, see notes
+std::complex<double> evolution::G(const double &x1,const double& x2,const double& t)
+{
+
+
+    std::complex<double> sin_2omegap_t=std::complex<double>(std::sin(2.0*omegap*t),0);
+    std::complex<double> cos_2omegap_t=std::complex<double>(std::cos(2.0*omegap*t),0);
+
+    std::complex<double> sin_omegap_t=std::complex<double>(std::sin(omegap*t),0);
+    std::complex<double> cos_omegap_t=std::complex<double>(std::cos(omegap*t),0);
+
+    std::complex<double> exp_lmd_sintheta_t=std::complex<double>(std::exp(lmd*std::sin(theta)*t),0);
+
+    std::complex<double> exp_2lmd_sintheta_t=std::pow(exp_lmd_sintheta_t,2.0);
+
+    std::complex<double> val0=F0(x1,x2);
+
+    std::complex<double> val1=F1(x1)*t;
+
+    std::complex<double>  val2=-1.0/(2.0*omegap)*F1(x1)*sin_2omegap_t;
+
+    std::complex<double> val3=F2(x1)*cos_2omegap_t;
+    // std::cout<<"F2(x2)="<<F2(x2)<<std::endl;
+    // std::cout<<"cos_2omegap_t="<<cos_2omegap_t<<std::endl;
+    std::complex<double> val4=F3(x1,x2)*sin_omegap_t;
+
+    std::complex<double> val5=F4(x1,x2)*cos_omegap_t;
+
+    std::complex<double> val6=F5(x1,x2)*exp_2lmd_sintheta_t;
+
+    std::complex<double> val7=F6(x1,x2)*sin_omegap_t*exp_2lmd_sintheta_t;
+
+    std::complex<double> val8=F7(x1,x2)*cos_omegap_t*exp_2lmd_sintheta_t;
+
+
+
+    std::complex<double> val9=F8(x1)*cos_2omegap_t*exp_2lmd_sintheta_t;
+
+    std::complex<double> val10=F9(x1)*sin_2omegap_t*exp_2lmd_sintheta_t;
+
+    std::complex<double> val11=F10(x1,x2)*exp_lmd_sintheta_t;
+
+    std::complex<double> val12=F11(x1)* sin_omegap_t*exp_lmd_sintheta_t;
+    std::complex<double> val13=F12(x1)*cos_omegap_t*exp_lmd_sintheta_t;
+    // Print all values
+    // std::cout << "val0:  " << val0 << std::endl;
+    // std::cout << "val1:  " << val1 << std::endl;
+    // std::cout << "val2:  " << val2 << std::endl;
+    // std::cout << "val3:  " << val3 << std::endl;
+    // std::cout << "val4:  " << val4 << std::endl;
+    // std::cout << "val5:  " << val5 << std::endl;
+    // std::cout << "val6:  " << val6 << std::endl;
+    // std::cout << "val7:  " << val7 << std::endl;
+    // std::cout << "val8:  " << val8 << std::endl;
+    // std::cout << "val9:  " << val9 << std::endl;
+    // std::cout << "val10: " << val10 << std::endl;
+    // std::cout << "val11: " << val11 << std::endl;
+    // std::cout << "val12: " << val12 << std::endl;
+    // std::cout << "val13: " << val13 << std::endl;
+
+
+    return val0+val1+val2+val3+val4+val5+val6+val7+val8+val9
+            +val10+val11+val12+val13;
+}
+
+
+void evolution::init_and_run()
+{
+    //use Strang splitting
+this->compute_all_expSj(dt);
+
+
+}
+
+
+/// @param x1
+/// @param t
+/// @return auxiliary function beta, see notes
+std::complex<double> evolution::beta(const double &x1,const double& t)
+{
+    double rho_val=rho(x1);
+    std::complex<double> part1=-1i*0.5*omegac*rho_val;
+
+    std::complex<double> part2=1i*1.0/4.0*omegac;
+
+    std::complex<double> part3=1i*1.0/2.0*Deltam;
+
+    std::complex<double> part4=std::complex<double>(1.0/2.0*lmd*sin(theta),0);
+
+    std::complex<double>  retVal=(part1+part2+part3+part4)*t;
+
+    return retVal;
+}
