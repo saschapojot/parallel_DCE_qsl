@@ -390,7 +390,11 @@ std::complex<double> evolution::G(const double &x1,const double& x2,const double
 void evolution::init_and_run()
 {
     //use Strang splitting
-this->compute_all_expSj(dt);
+    this->compute_all_expSj(dt);
+    this->construct_expA_matrix(dt);
+
+
+    this->H1R_only();
 
 
 }
@@ -413,4 +417,184 @@ std::complex<double> evolution::beta(const double &x1,const double& t)
     std::complex<double>  retVal=(part1+part2+part3+part4)*t;
 
     return retVal;
+}
+
+
+/// @param tau: time step
+///evolution matrix for quasilinear equation
+void evolution::construct_expA_matrix(const double &tau)
+{
+// construct Gamma matrix
+    for (int n1=0;n1<N1;n1++)
+    {
+        for (int n2=0;n2<N2;n2++)
+        {
+            int flat_ind=this->flattened_ind(n1,n2);
+            double x1Tmp=x1ValsAll[n1];
+            double x2Tmp=x2ValsAll[n2];
+            this->Gamma_matrix[flat_ind]=G(x1Tmp,x2Tmp,tau);
+        }//end for n2
+    }// end for n1
+
+    //construct B vec
+    for (int j=0;j<N1;j++)
+    {
+        double x1Tmp=x1ValsAll[j];
+        this->B_vec[j]=beta(x1Tmp,tau);
+    }//end for j
+
+    //construct A matrix
+    for (int n1=0;n1<N1;n1++)
+    {
+        for (int n2=0;n2<N2;n2++)
+        {
+            int flat_ind=this->flattened_ind(n1,n2);
+            this->A_matrix[flat_ind]=this->Gamma_matrix[flat_ind]+this->B_vec[n1];
+        }//end for n2
+    }//end for n1
+    // construct expA matrix
+
+    for (int n1=0;n1<N1;n1++)
+    {
+        for (int n2=0;n2<N2;n2++)
+        {
+            int flat_ind=this->flattened_ind(n1,n2);
+            this->expA_matrix[flat_ind]=std::exp(A_matrix[flat_ind]);
+
+        }//end for n2
+    }//end for n1
+}
+
+
+///
+/// forward row fft, from psi to d_ptr
+void evolution::row_fft_psi_2_d_ptr()
+{
+    fftw_execute(this->plan_2d_row_fft_forward_psi_to_d_ptr);
+}
+
+
+///
+///convert to c, in arma
+void evolution::d_ptr_2_c()
+{
+    // Create intermediate matrix that interprets d_ptr as column-major N2×N1
+    arma::cx_mat intermediate_matrix(
+        reinterpret_cast<arma::cx_double*>(d_ptr.get()),
+        N2, N1,  // Swapped dimensions: N2 rows, N1 cols
+        false,   // don't copy data, just create a view
+        false    // allow external memory
+    );
+
+    // Now intermediate_matrix is N2×N1 but contains transposed data
+    // Transpose it to get the correct N1×N2 orientation
+    this->c_mat = intermediate_matrix.t();
+    c_mat*=this->_1_over_N2;
+
+    c_mat.each_row()%=sign_for_c;
+}
+
+
+
+///
+/// @param j row number
+/// this function computes product of jth row of c and expS_{j}
+void evolution::interpolation_one_row(const int &j)
+{
+    const arma::cx_dmat& expSj=this->expS(j);
+
+    auto c_row_j_view = c_mat.row(j);  // Type: arma::subview_row<cx_double>
+    arma::cx_drowvec psi_tilde_row_j=c_row_j_view *expSj;
+
+    int flat_ind_start=this->flattened_ind(j,0);
+
+    // Direct memory copy of N2 complex values
+    std::memcpy(psiTmpCache.get() + flat_ind_start,
+                psi_tilde_row_j.memptr(),
+                N2 * sizeof(std::complex<double>));
+}
+
+///
+/// perform interpolations for all rows of psiTmpCache
+void evolution::interpolation_all_rows_parallel()
+{
+    std::vector<std::thread> threads;
+    threads.reserve(parallel_num);
+    // Calculate chunk size for each thread
+    const int chunk_size = (N1 + parallel_num - 1) / parallel_num;
+    for(int t = 0; t < parallel_num; ++t) {
+        int start_row = t * chunk_size;
+        int end_row = std::min(start_row + chunk_size, N1);
+
+        if(start_row >= N1) break;  // No more rows to process
+
+        threads.emplace_back([this, start_row, end_row]() {
+            for(int j = start_row; j < end_row; ++j) {
+                this->interpolation_one_row(j);
+            }
+        });
+    }//end for t
+
+    // Join all threads
+    for(auto& thread : threads) {
+        thread.join();
+    }
+}
+
+
+///
+/// evolution for quasilinear solution
+void evolution::psi_multiply_with_expA()
+{
+    std::vector<std::thread> threads;
+    threads.reserve(parallel_num);
+    const int chunk_size = (totalSize + parallel_num - 1) / parallel_num;
+
+    for(int t = 0; t < parallel_num; ++t) {
+        int start_idx = t * chunk_size;
+        int end_idx = std::min(start_idx + chunk_size, totalSize);
+
+        if(start_idx >= totalSize) break;
+
+        threads.emplace_back([this, start_idx, end_idx]() {
+            for(int i = start_idx; i < end_idx; ++i) {
+                psiCurr[i] = psiTmpCache[i] * expA_matrix[i];
+            }
+        });
+    }
+
+    for(auto& thread : threads) {
+        thread.join();
+    }
+}
+
+///
+///evolution H1R, 1 step
+void evolution::H1R_1_step()
+{
+    //1. perform row fft, forward
+    this->row_fft_psi_2_d_ptr();
+    //2. get matrix c
+    this->d_ptr_2_c();
+    //3. interpolation
+    this->interpolation_all_rows_parallel();
+    //4. quasilinear solution
+    this->psi_multiply_with_expA();
+}
+
+
+///
+///evolve H1R only, for benchmark
+void evolution::H1R_only()
+{
+for (int q=0;q<10;q++)
+{
+    const auto t_evo_Start{std::chrono::steady_clock::now()};
+ this->H1R_1_step();
+    std::string out_file_name=out_wvfunction_dir+"/psi"+std::to_string(q+1)+".pkl";
+    this->save_complex_array_to_pickle(psiCurr.get(),totalSize,out_file_name);
+    const auto t_evo_End{std::chrono::steady_clock::now()};
+    const std::chrono::duration<double> elapsed_secondsAll{t_evo_End - t_evo_Start};
+    std::cout<<"step "+std::to_string(q)+": "<< elapsed_secondsAll.count() / 3600.0 << " h" << std::endl;
+}
 }

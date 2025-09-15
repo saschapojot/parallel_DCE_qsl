@@ -73,7 +73,8 @@ params2cppInFile=[
     thetaCoef_Str+"\n",
     str(groupNum)+"\n",
     str(rowNum)+"\n",
-    str(parallel_num)+"\n"
+    str(parallel_num)+"\n",
+
 
     ]
 
