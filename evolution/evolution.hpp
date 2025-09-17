@@ -467,6 +467,16 @@ public:
     /// @param x1
     /// @return rho(x1)
     double rho(const double& x1);
+    void init_psi0();
+    ///
+    /// @param n2 index of x2
+    /// @return wavefunction of phonon at n2
+    double f2(int n2);
+
+    ///
+    /// @param n1 index of x1
+    /// @return wavefunction of photon at n1
+    double f1(int n1);
     ///
     /// @param n1 row index
     /// @param n2 col index
