@@ -160,7 +160,33 @@ public:
                 iss >> parallel_num;
                 paramCounter++;
                 continue;
-            }
+            }//end parallel_num
+
+            //read tTot
+            if (paramCounter == 11)
+            {
+                iss>>tTot;
+                paramCounter++;
+                continue;
+            }//end tTot
+
+            //read Q
+            if (paramCounter == 12)
+            {
+                iss>>Q;
+                paramCounter++;
+                continue;
+            }//end Q
+
+            //read toWrite
+            if (paramCounter == 13)
+            {
+                iss>>toWrite;
+                paramCounter++;
+                continue;
+
+            }//end toWrite
+
         } //end while
 
         //print parameters
@@ -169,9 +195,10 @@ public:
         std::cout << "j1H=" << j1H << ", j2H=" << j2H << ", g0=" << g0
             << ", omegam=" << omegam << ", omegap=" << omegap << ", omegac=" << omegac
             << ", er=" << er << ", thetaCoef=" << thetaCoef << ", groupNum="
-            << groupNum << ", rowNum=" << rowNum << ", parallel_num=" << parallel_num << std::endl;
-        this->L1 = 5;
-        this->L2 = 8;
+            << groupNum << ", rowNum=" << rowNum << ", parallel_num=" << parallel_num
+        <<", toWrite="<<toWrite<< std::endl;
+        this->L1 = 0.5;
+        this->L2 = 1;
         this->r = std::log(er);
         this->theta = thetaCoef * PI;
         this->Deltam = omegam - omegap;
@@ -196,7 +223,8 @@ public:
         {
             N1 += 1;
         }
-
+        N1=270;
+        N2=300;
         std::cout << "L1=" << L1 << ", L2=" << L2 << std::endl;
         std::cout << "N1=" << N1 << std::endl;
         std::cout << "N2=" << N2 << std::endl;
@@ -254,8 +282,8 @@ public:
             k2ValsAllSquared_fft.push_back(std::pow(val, 2));
         }
 
-        this->tTot = 1.0;
-        this->Q = static_cast<int>(1e3);
+        // this->tTot = 1.0;
+        // this->Q = static_cast<int>(1e8);
         this->dt = tTot / static_cast<double>(Q);
         this->totalSize = N1 * N2;
         std::cout << "totalSize=" << totalSize << std::endl;
@@ -522,6 +550,7 @@ public:
     double dt;
     int Q;
     int parallel_num;
+    int toWrite;
 
     std::vector<double> x1ValsAll;
     std::vector<double> x2ValsAll;

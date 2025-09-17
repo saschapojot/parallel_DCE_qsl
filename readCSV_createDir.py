@@ -27,10 +27,14 @@ omegac=float(oneRow.loc["omegac"])
 er=float(oneRow.loc["er"])#magnification
 
 thetaCoef=float(oneRow.loc["thetaCoef"])
+tTot=float(oneRow.loc["tTot"])
+Q=float(oneRow.loc["Q"])
+toWrite=int(oneRow.loc["toWrite"])
 
-# print("j1H="+str(j1H)+", j2H="+str(j2H)+", g0="+str(g0)\
-#       +", omegam="+str(omegam)+", omegap="+str(omegap)\
-#       +", omegac="+str(omegac)+", er="+str(er)+", thetaCoef="+str(thetaCoef))
+print("j1H="+str(j1H)+", j2H="+str(j2H)+", g0="+str(g0)\
+      +", omegam="+str(omegam)+", omegap="+str(omegap)\
+      +", omegac="+str(omegac)+", er="+str(er)
+      +", thetaCoef="+str(thetaCoef)+f", tTot={tTot}, Q={Q}, toWrite={toWrite}")
 
 
 outDir="./outData/group"+str(groupNum)+"/row"+str(rowNum)+"/"
@@ -74,6 +78,9 @@ params2cppInFile=[
     str(groupNum)+"\n",
     str(rowNum)+"\n",
     str(parallel_num)+"\n",
+    str(tTot)+"\n",
+    str(Q)+"\n",
+    str(toWrite)
 
 
     ]
@@ -83,4 +90,4 @@ with open(cppInParamsFileName,"w+") as fptr:
     fptr.writelines(params2cppInFile)
 
 
-shutil.copy(inParamFileName,outDir)
+# shutil.copy(inParamFileName,outDir)
