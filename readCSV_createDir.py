@@ -66,6 +66,7 @@ erStr=format_using_decimal(er)
 thetaCoef_Str=format_using_decimal(thetaCoef)
 parallel_num=24
 
+
 params2cppInFile=[
     j1HStr+"\n",
     j2HStr+"\n",

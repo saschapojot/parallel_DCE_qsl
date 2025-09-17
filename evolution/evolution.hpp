@@ -197,8 +197,8 @@ public:
             << ", er=" << er << ", thetaCoef=" << thetaCoef << ", groupNum="
             << groupNum << ", rowNum=" << rowNum << ", parallel_num=" << parallel_num
         <<", toWrite="<<toWrite<< std::endl;
-        this->L1 = 0.5;
-        this->L2 = 1;
+        this->L1 = 1;
+        this->L2 = 20;
         this->r = std::log(er);
         this->theta = thetaCoef * PI;
         this->Deltam = omegam - omegap;
@@ -223,8 +223,8 @@ public:
         {
             N1 += 1;
         }
-        N1=270;
-        N2=300;
+        N1=270*2;
+        N2=300*2;
         std::cout << "L1=" << L1 << ", L2=" << L2 << std::endl;
         std::cout << "N1=" << N1 << std::endl;
         std::cout << "N2=" << N2 << std::endl;
