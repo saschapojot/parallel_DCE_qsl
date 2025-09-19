@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import glob
-
+from datetime import datetime
 import pickle
 from multiprocessing import Pool, cpu_count
 from functools import partial
@@ -141,10 +141,10 @@ def phi(x1Val,x2Val,tVal):
     f2_part=f2(x2Val)
     return f1_part*f2_part
 
-x1Val=0.1
-x2Val=0.2
-tVal=10
-s2Val=s2.subs([(x1,x1Val),(x2,x2Val),(t,tVal)]).evalf()
+# x1Val=0.1
+# x2Val=0.2
+# tVal=10
+# s2Val=s2.subs([(x1,x1Val),(x2,x2Val),(t,tVal)]).evalf()
 
 # Create symbolic psi expression
 f1_symbolic = exp(-half*omegac*x1**2)*hermite(j1H, x1*sqrt(omegac))
@@ -154,11 +154,11 @@ psi = f1_symbolic * f2_symbolic * exp(G + beta)
 # Lambdify psi
 psi_func = lambdify([x1, x2, t], psi, modules='numpy')
 
-L1 = 0.5;
-L2 = 1;
-N1=270
-N2 = 300
-
+L1 = 1;
+L2 = 5;
+N1=270*2
+N2 = 300*2
+# print(2/(np.abs(lmd*np.sin(theta))*N2))
 dx1 = 2.0 * L1 /N1
 dx2 = 2.0 * L2 / N2
 x1ValsAll=[-L1 + dx1 * n1 for n1 in range(0,N1)]
@@ -234,20 +234,25 @@ endInds=np.argsort(time_step_EndAll)
 
 sorted_time_step_all=[time_step_EndAll [i] for i in endInds]
 sortedDataFiles=[dataFilesAll[i] for i in endInds]
+diff_all=[]
 
-
+t_diff_start=datetime.now()
 for j in range(0,len(sorted_time_step_all)):
     step_ind=sorted_time_step_all[j]
     file=sortedDataFiles[j]
     with open(file,"rb") as fptr:
         in_wvfunc_data=pickle.load(fptr)
     in_wvfunc_data=np.array(in_wvfunc_data)
-    analytic=generate_discrete_solution_normalized_parallel(step_ind*dt,12)
+    analytic=generate_discrete_solution_normalized_parallel(step_ind*dt,24)
     diff=np.linalg.norm(in_wvfunc_data-analytic,ord=2)
 
     print(f"step_ind={step_ind}, diff={diff}")
+    diff_all.append(diff)
+t_diff_end=datetime.now()
+out_diff_df = pd.DataFrame({'time_step': sorted_time_step_all, 'diff': diff_all})
+out_diff_df.to_csv(in_wvfunc_dir+'/out_diff.csv', index=False)
 
-
+print(f"total diff time: ", t_diff_end-t_diff_start)
 # H10R=-half*omegac-half*Deltam-half*g0*sqrt(2*omegam)*cos(omegap*t)*x2+half*omegac**2*x1**2 \
 #      +half*omegam*mu*x2**2+g0*omegac*sqrt(2*omegam)*cos(omegap*t)*x1**2*x2+half*I*lmd*sin(theta)
 #
