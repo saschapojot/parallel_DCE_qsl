@@ -48,7 +48,7 @@ x2ValsAll=np.linspace(-10,10,1000)
 tValsAll=np.linspace(0,5,20)
 
 # Create output directory if it doesn't exist
-output_dir = f"./plots_group{groupNum}_row{rowNum}"
+output_dir = f"./1d_plots_group{groupNum}_row{rowNum}"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
