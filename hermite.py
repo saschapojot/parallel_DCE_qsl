@@ -1,17 +1,23 @@
 import numpy as np
 from scipy.special import poch, hyp2f1, gammaln
 from math import factorial
+from scipy.integrate import quad
+from scipy.special import hermite
 
-a = 0.1
-p = (a**2 + 1) / 2
 
-alpha = a
-beta = 1
 
-lmd = (a**2 - 1) / (a**2 + 1)
 
-n = 5
-k = 11111
+# Hn=hermite(n)
+#
+# Hk=hermite(k)
+#
+
+# def f(x):
+#     return np.exp(-p*x**2)*Hn(alpha*x)*Hk(beta*x)
+#
+# # Compute the integral from -inf to inf
+# result, error = quad(f, -np.inf, np.inf)
+# print(f"result={result}, error={error}")
 
 # Don't create Hermite polynomial objects for large k!
 # Hk = hermite(k)  # This causes overflow
@@ -42,7 +48,7 @@ def compute_Vnk_even(n, k, lmd, p):
     log_Vnk = log_norm + log_Ink
     sign_Vnk = sign_Ink
 
-    return log_Vnk, sign_Vnk
+    return log_Vnk, sign_Vnk,log_Ink
 
 def compute_Vnk_odd(n, k, lmd, p):
     """Compute Vnk for odd n and k using log-space arithmetic"""
@@ -71,30 +77,26 @@ def compute_Vnk_odd(n, k, lmd, p):
     log_Vnk = log_norm + log_Ink
     sign_Vnk = sign_Ink
 
-    return log_Vnk, sign_Vnk
+    return log_Vnk, sign_Vnk,log_Ink
 
-# Determine parity and compute
-n_even = (n % 2 == 0)
-k_even = (k % 2 == 0)
+a = 0.1
+p = (a**2 + 1) / 2
 
-if n_even and k_even:
-    print("Computing for even n and k...")
-    log_Vnk, sign = compute_Vnk_even(n, k, lmd, p)
-elif (not n_even) and (not k_even):
-    print("Computing for odd n and k...")
-    log_Vnk, sign = compute_Vnk_odd(n, k, lmd, p)
-else:
-    print("Error: n and k must have the same parity (both even or both odd)")
-    print("The integral is zero for mixed parity.")
-    exit()
+alpha = a
+beta = 1
 
-print(f"log(|Vnk|) = {log_Vnk}")
-print(f"sign(Vnk) = {sign}")
+lmd = (a**2 - 1) / (a**2 + 1)
+# k=20
+n = 10
 
-# If the log value is not too negative, compute the actual value
-if log_Vnk > -700:  # Avoid underflow
-    Vnk = sign * np.exp(log_Vnk)
-    print(f"Vnk = {Vnk}")
-else:
-    print(f"Vnk is too small to represent as float (< 10^-304)")
-    print(f"|Vnk| ≈ 10^{log_Vnk / np.log(10)}")
+
+kValsAll=range(0,40000,2)
+
+V_vals=[]
+for k in kValsAll:
+    log_Vnk, sign_Vnk,_=compute_Vnk_even(n,k,lmd,p)
+    V_vals.append(sign_Vnk*np.exp(log_Vnk))
+
+print(V_vals)
+log_V_vals=np.array(V_vals)
+print(np.linalg.norm(V_vals,ord=2))
