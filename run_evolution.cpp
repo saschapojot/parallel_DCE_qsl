@@ -8,5 +8,10 @@ int main(int argc, char *argv[])
         std::exit(2);
     }
     auto evo_obj=evolution(std::string(argv[1]));
+    evo_obj.init_and_run();
+
+
+
+
 
 }

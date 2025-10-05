@@ -78,10 +78,21 @@ target_link_libraries(run_evolution ${LIBS_SO})
 
 
 #fftw3
-file(GLOB LIBS_A "/home/adada/cppLocal/fftw3/lib/libfftw3.a")
-target_link_libraries(run_evolution ${LIBS_A})
 
+#fftw3 - Updated to include all FFTW libraries
+set(FFTW3_LIB_DIR "/home/adada/cppLocal/fftw3/lib")
+# Core FFTW library
+target_link_libraries(run_evolution "${FFTW3_LIB_DIR}/libfftw3.a")
 
+# FFTW threading libraries - check which ones exist and link them
+if(EXISTS "${FFTW3_LIB_DIR}/libfftw3_threads.a")
+    target_link_libraries(run_evolution "${FFTW3_LIB_DIR}/libfftw3_threads.a")
+    target_link_libraries(run_evolution pthread)  # POSIX threads
+    message(STATUS "FFTW3 threads support enabled (POSIX)")
+endif()
+
+# Math library (required by FFTW)
+target_link_libraries(run_evolution m)
 
 ##### example
 target_link_libraries(example Boost::filesystem)

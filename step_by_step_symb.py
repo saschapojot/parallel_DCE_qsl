@@ -12,6 +12,28 @@ x1,tau,s2,t=symbols("x1,tau,s2,t",cls=Symbol,real=True)
 Deltam=symbols("Delta_m",cls=Symbol,real=True)
 omegam,omegac,omegap=symbols("omega_m,omega_c,omega_p",cls=Symbol,positive=True)
 x2,dx2=symbols("x2,dx2",cls=Symbol,real=True)
+grpNum=0
+rowNum=0
+
+inCsvFileName=f"./inParams/inParams{grpNum}.csv"
+
+df=pd.read_csv(inCsvFileName)
+row=df.iloc[rowNum,:]
+
+j1H=row["j1H"]
+
+j2H=row["j2H"]
+g0=row["g0"]
+omegam=row["omegam"]
+omegap=row["omegap"]
+omegac=row["omegac"]
+
+er=row["er"]
+thetaCoef=row["thetaCoef"]
+theta=thetaCoef*np.pi
+e2r=er**2
+Deltam=omegam - omegap
+lmd = (e2r - 1 / e2r) / (e2r + 1 / e2r) * Deltam
 half=Rational(1,2)
 quarter=Rational(1,4)
 rho=omegac*x1**2-half
@@ -78,12 +100,18 @@ rhs_cos_t=I*g0/D*sqrt(2*omegam)*(mu*omegap+2*lmd**2*sin(theta)**2)/(2*lmd*sin(th
 F0=I*omegam*mu/(4*lmd*sin(theta))*x2**2+I*g0**2/D**2*rho**2*\
    ((2*omegap-D/(2*omegap)-mu/2)*lmd*sin(theta)+mu*D/(4*lmd*sin(theta)))
 
+
+
 F1=I*g0**2/D*(omegap-mu/2)*rho**2
+
 
 F2=I*g0**2/D**2*\
    (2*lmd**2*D*sin(theta)**2+4*mu*lmd**2*omegap*sin(theta)**2+mu*omegap**3-3*mu*lmd**2*omegap*sin(theta)**2)/(4*lmd*omegap*sin(theta))*rho**2
 
+
+
 F3=I*g0/D*(half*mu-omegap)*sqrt(2*omegam)*rho*x2
+
 
 F4=I*g0/D*sqrt(2*omegam)*(mu*omegap+2*lmd**2*sin(theta)**2)/(2*lmd*sin(theta))*rho*x2
 
@@ -91,9 +119,12 @@ F4=I*g0/D*sqrt(2*omegam)*(mu*omegap+2*lmd**2*sin(theta)**2)/(2*lmd*sin(theta))*r
 
 F5=-I*mu/(4*lmd*sin(theta)*D)*(D*omegam*x2**2+g0**2*rho**2)
 
+
 F6=I*mu*g0/D*sqrt(omegam/2)*rho*x2
 
+
 F7=-I*mu*g0/(lmd*sin(theta)*D)*sqrt(omegam/2)*omegap*rho*x2
+
 
 F8=I*mu*g0**2/(4*D**2*lmd*sin(theta))*(lmd**2*sin(theta)**2-omegap**2)*rho**2
 
@@ -120,6 +151,27 @@ G=F0+F1*t-1/(2*omegap)*F1*sin(2*omegap*t)\
     +F5*exp(2*lmd*sin(theta)*t)+F6*sin(omegap*t)*exp(2*lmd*sin(theta)*t)\
     +F7*cos(omegap*t)*exp(2*lmd*sin(theta)*t)+F8*cos(2*omegap*t)*exp(2*lmd*sin(theta)*t)+F9*sin(2*omegap*t)*exp(2*lmd*sin(theta)*t)\
     +F10*exp(lmd*sin(theta)*t)+F11*sin(omegap*t)*exp(lmd*sin(theta)*t)+F12*cos(omegap*t)*exp(lmd*sin(theta)*t)
+
+val0=F0
+val1=F1*t
+val2=-1/(2*omegap)*F1*sin(2*omegap*t)
+val3=F2*cos(2*omegap*t)
+
+val4=F3*sin(omegap*t)
+val5=F4*cos(omegap*t)
+
+val6=F5*exp(2*lmd*sin(theta)*t)
+val7=F6*sin(omegap*t)*exp(2*lmd*sin(theta)*t)
+
+val8=F7*cos(omegap*t)*exp(2*lmd*sin(theta)*t)
+val9=F8*cos(2*omegap*t)*exp(2*lmd*sin(theta)*t)
+
+val10=F9*sin(2*omegap*t)*exp(2*lmd*sin(theta)*t)
+val11=F10*exp(lmd*sin(theta)*t)
+
+val12=F11*sin(omegap*t)*exp(lmd*sin(theta)*t)
+val13=F12*cos(omegap*t)*exp(lmd*sin(theta)*t)
+
 
 
 
@@ -149,24 +201,11 @@ H10R=-half*omegac-half*Deltam-half*g0*sqrt(2*omegam)*cos(omegap*t)*x2+half*omega
 beta=(-I*half*omegac*rho+I*quarter*omegac+I*half*Deltam+half*lmd*sin(theta))*t
 
 
+x1_tmp=1
+x2_tmp=2
+tau_tmp=0.1
+beta_val=beta.subs([(x1,x1_tmp),(x2,x2_tmp),(t,tau_tmp)])
+pprint(beta_val.evalf())
 
 
-grpNum=0
-rowNum=0
 
-inCsvFileName=f"./inParams/inParams{grpNum}.csv"
-
-df=pd.read_csv(inCsvFileName)
-row=df.iloc[rowNum,:]
-
-j1H=row["j1H"]
-
-j2H=row["j2H"]
-g0=row["g0"]
-omegam=row["omegam"]
-omegap=row["omegap"]
-omegac=row["omegac"]
-
-er=row["er"]
-thetaCoef=row["thetaCoef"]
-theta=thetaCoef*np.pi
