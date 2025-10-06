@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 project(parallel_DCE_qsl)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CXX_STANDARD_LIB "/usr/lib/x86_64-linux-gnu/libstdc++.so.6")
+
 add_executable(run_evolution run_evolution.cpp evolution/evolution.cpp evolution/evolution.hpp)
 add_executable(example fftw_example.cpp)
 target_compile_options(run_evolution PRIVATE
