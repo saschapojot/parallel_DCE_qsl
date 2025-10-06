@@ -14,6 +14,7 @@ rowNum=int(sys.argv[2])
 
 #this script loads wavefunction and checks norm
 in_wvfunc_dir=f"./outData/group{grpNum}/row{rowNum}/wavefunction/"
+outDir=f"./outData/group{grpNum}/row{rowNum}/"
 dataFilesAll=[]
 time_step_EndAll=[]
 for oneDataFile in glob.glob(in_wvfunc_dir+"/psi*.pkl"):
