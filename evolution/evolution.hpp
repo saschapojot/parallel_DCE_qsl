@@ -198,7 +198,7 @@ public:
             << groupNum << ", rowNum=" << rowNum << ", parallel_num=" << parallel_num
         <<", toWrite="<<toWrite<< std::endl;
         this->L1 = 1;
-        this->L2 = 20;
+        this->L2 = 5;
         this->r = std::log(er);
         this->theta = thetaCoef * PI;
         this->Deltam = omegam - omegap;

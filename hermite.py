@@ -1,8 +1,7 @@
 import numpy as np
 from scipy.special import poch, hyp2f1, gammaln
-from math import factorial
-from scipy.integrate import quad
-from scipy.special import hermite
+
+from scipy.special import eval_hermite
 
 
 
