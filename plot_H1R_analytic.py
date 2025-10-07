@@ -11,6 +11,10 @@ from sympy.simplify.fu import TR11,TR5
 import re
 import os
 from pathlib import Path
+from scipy import sparse
+
+
+
 import sys
 if len(sys.argv)!=3:
     print("wrong number of arguments")
@@ -162,21 +166,65 @@ psi = f1_symbolic * f2_symbolic * exp(G + beta)
 psi_func = lambdify([x1, x2, t], psi, modules='numpy')
 
 L1 = 1;
-L2 = 10;
+L2 = 30;
 N1=270*2
 N2 = 1000
 # print(2/(np.abs(lmd*np.sin(theta))*N2))
 dx1 = 2.0 * L1 /N1
 dx2 = 2.0 * L2 / N2
-x1ValsAll=[-L1 + dx1 * n1 for n1 in range(0,N1)]
-x2ValsAll=[-L2 + dx2 * n2 for n2 in range(0,N2)]
+x1ValsAll=np.array([-L1 + dx1 * n1 for n1 in range(0,N1)])
+x2ValsAll=np.array([-L2 + dx2 * n2 for n2 in range(0,N2)])
 dx1 = 2.0 * L1 / N1
 dx2 = 2.0 * L2 /N2
 tTot = 1.0
 Q = 1e2
 dt = tTot /Q
 print(f"dx1={dx1}, dx2={dx2}, dt={dt}")
+#construct H6
 
+leftMat=sparse.diags(-2*np.ones(N1),offsets=0,format="lil",dtype=complex) \
+        +sparse.diags(np.ones(N1-1),offsets=1,format="lil",dtype=complex) \
+        +sparse.diags(np.ones(N1-1),offsets=-1,format="lil",dtype=complex)
+
+H6=-1/(2*dx1**2)*sparse.kron(leftMat,sparse.eye(N2,dtype=complex,format="lil"),format="lil")
+
+#compute <Nc>
+tmp0=sparse.diags(x1ValsAll**2,format="lil")
+IN2=sparse.eye(N2,dtype=complex,format="lil")
+NcMat1=sparse.kron(tmp0,IN2)
+
+def avgNc(one_psi):
+    """
+
+
+    :return: number of photons for Psi
+    """
+
+    val=1/2*omegac*np.vdot(one_psi,NcMat1@one_psi)-1/2*np.vdot(one_psi,one_psi)+1/omegac*np.vdot(one_psi,H6@one_psi)
+
+    return val
+
+# compute Nm
+S2=sparse.diags(np.power(x2ValsAll,2),format="csc")
+Q2=sparse.diags(-2*np.ones(N2),offsets=0,format="csc",dtype=complex) \
+   +sparse.diags(np.ones(N2-1),offsets=1,format="csc",dtype=complex) \
+   +sparse.diags(np.ones(N2-1),offsets=-1,format="csc",dtype=complex)
+
+IN1=sparse.eye(N1,dtype=complex,format="lil")
+NmPart1=sparse.kron(IN1,S2)
+NmPart2=sparse.kron(IN1,Q2)
+
+def avgNm(one_psi):
+    """
+
+    :param j:  time step j, wavefunction is Psi
+    :return: number of phonons for Psi
+    """
+
+
+    val=1/2*omegam*np.vdot(one_psi,NmPart1@one_psi)-1/2*np.vdot(one_psi,one_psi)-1/(2*omegam*dx2**2)*np.vdot(one_psi,NmPart2@one_psi)
+
+    return val
 def compute_row_batch(row_indices, t, x1ValsAll, x2ValsAll, N2):
     """Compute a batch of rows"""
     rows = []
@@ -223,7 +271,13 @@ def generate_discrete_solution_normalized_parallel(t, n_workers=None):
             solution[n1, :] = row
 
     solution /= np.linalg.norm(solution, ord="fro")
-    return solution.flatten()
+    # nm_tmp=np.linalg.norm(solution, ord="fro")
+    # print(f"t={t}, norm={nm_tmp}")
+    solution_flattened=solution.flatten()
+    Nc=avgNc(solution_flattened)
+    Nm=avgNm(solution_flattened)
+    print(f"Nm={Nm}, Nc={Nc}")
+    return solution_flattened
 # Create directory for saving plots
 # Create directory for saving plots
 output_dir = f"./plots_group{grpNum}_row{rowNum}"
